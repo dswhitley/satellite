@@ -1,0 +1,27 @@
+---
+# standalone tasks file for publish
+
+################################################################################
+# VARIABLES:
+#  This will be passed a standalone content view ID to publish
+- name: standalone | set fact from passed variables
+  set_fact: 'cv={{ cvNAME }}'
+
+- name: standalone | publishing {{ cv }} asynchronously
+  command: hammer --interactive 0 content-view publish {{ORGID}} --name {{ cv }}
+           --description "Update {{ ansible_date_time.iso8601 }}" --async
+  register: publish
+  failed_when:
+    - "'Timeout' not in publish.stderr"
+    - "'being published' not in publish.stdout"
+    - "'other running tasks' not in publish.stderr"
+
+# For some reason ^this^ gives a timeout error even if it is running, so don't
+# stop on error. And sometimes it gives an error about the task already running
+
+- name: standalone | wait for the {{ cv }} publish task to complete
+  shell: hammer --csv task list --search publish --order 'ENDED AT' | awk -F, '$6~/planning|running/ {print;}'
+  register: result
+  until: result.stdout == ""
+  retries: 5
+  delay: 300

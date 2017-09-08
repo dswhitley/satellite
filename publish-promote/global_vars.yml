@@ -1,0 +1,37 @@
+---
+##> This is a global variables file.
+
+################################################################################
+# Populte with the FQDN of the Satellite server
+#sat_fqdn: "rhdsnfs.cha.tva.gov"
+sat_fqdn: "demo-satellite.dwhitley.demo.com"
+
+
+ORG: "Unix"
+ORGID: " --organization-id 1"
+
+content_view_opts: "--organization-id 1 --per-page 10000 --nondefault yes"
+
+################################################################################
+# The following content views will be used with each lifecycle environment.
+# Think of this that for each item in 'content_views' will be used with each
+# item in 'lifecycle_envs'.  These will be used as a nested loop in the
+# 'publish' role
+content_views:
+  - 'Development-RHEL'
+  - 'EPEL'
+  - 'RHEL7_Base'
+lifecycle_envs:
+  - 'Development'
+  - 'Acceptance'
+  - 'Production'
+#content_views:
+#  - 'CCV RHEL 7'
+#  - 'CCV RHEL 6 64-bit'
+#  - 'CCV RHEL 5'
+#  - 'CCV RHEL 7 WS'
+#lifecycle_envs:
+#  - 'Sandbox'
+#  - 'Development'
+#  - 'Acceptance'
+#  - 'Production'

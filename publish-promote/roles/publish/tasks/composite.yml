@@ -1,0 +1,53 @@
+---
+# composite tasks file for publish
+
+################################################################################
+# VARIABLES:
+#  This will be passed a composite content view ID to publish
+- name: composite | set fact from passed variables
+  set_fact: 'cv={{ cvNAME }}'
+
+- name: composite | capture components making up {{ cv }}
+  shell: hammer content-view info {{ORGID}} --name {{ cv }} |
+         sed -n '/^Components/,/^Activation/p' |
+         awk '/Name/ {print $2;}'
+  register: components
+
+- name: composite | [{{ cv }}] find current version ID of each component
+  shell: hammer content-view info {{ORGID}} --name {{ item }} |
+         sed -n '/^Versions/,/^Components/p' |
+         awk '/ID/ {a=$NF} END{print a}'
+  register: componentID
+  with_items: "{{ components.stdout_lines }}"
+
+- name: composite | [{{ cv }}] concatenate the component version IDs
+  set_fact: componentIDs="{{ componentIDs | default("") }},{{ item }}"
+  with_items: "{{ componentID.results|map(attribute='stdout_lines')|list }}"
+
+- name: composite | [{{ cv }}] clean up the component version IDs variable
+  set_fact: componentIDs="{{ componentIDs | regex_replace('^,', '') }}"
+
+## update the component versions of the passed content view
+- name: composite | update the underlying components of {{ cv }}
+  command: hammer content-view update --component-ids {{ componentIDs }}
+           {{ORGID}} --name {{ cv }}
+
+- name: composite | publishing {{ cv }} asynchronously
+  command: hammer --interactive 0 content-view publish {{ORGID}} --name {{ cv }}
+           --description "Update {{ ansible_date_time.iso8601 }}" --async
+  register: publish
+  failed_when:
+    - "'Timeout' not in publish.stderr"
+    - "'being published' not in publish.stdout"
+    - "'other running tasks' not in publish.stderr"
+
+## For some reason ^this^ gives a timeout error even if it is running, so don't
+## stop on error. And sometimes it gives an error about the task already running
+
+- name: composite | wait for the {{ cv }} publish task to complete
+  shell: hammer --csv task list --search publish --order 'ENDED AT' |
+         awk -F, '$6~/planning|running/ {print;}'
+  register: result
+  until: result.stdout == ""
+  retries: 5
+  delay: 300

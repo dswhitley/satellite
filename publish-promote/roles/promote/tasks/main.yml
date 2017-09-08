@@ -1,0 +1,9 @@
+---
+# tasks file for promote
+
+- name: promote | (testing) output variables
+  debug:
+    msg: "content_view: {{ item[0] }} | lifecycle_env: {{ item[1] }}"
+  with_nested:
+    - "{{ content_view }}"
+    - "{{ lifecycle_env }}"
