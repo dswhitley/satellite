@@ -13,6 +13,9 @@
          awk '/Name/ {print $2;}'
   register: components
 
+# should I use this instead of parsing the output of info?
+#  hammer --csv content-view version list ${ORGID} --content-view "${CVNAME}"
+
 - name: composite | [{{ cv }}] find current version ID of each component
   shell: hammer content-view info {{ORGID}} --name {{ item }} |
          sed -n '/^Versions/,/^Components/p' |
