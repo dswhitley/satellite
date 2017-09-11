@@ -24,7 +24,7 @@
 - name: promote | ensure {{ content_view }} is valid
   assert:
     that:
-      - "{{ content_view }} in content_views.stdout"
+      - "'{{ content_view }}' in content_views.stdout"
 
 # verify passed content view is valid
 # verify passed lifecycle environment is valid
