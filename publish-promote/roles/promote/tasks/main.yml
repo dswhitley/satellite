@@ -8,23 +8,27 @@
     - "{{ content_view }}"
     - "{{ lifecycle_env }}"
 
-- name: promote | debug output
-  debug:
-    var: content_view
-
 - name: promote | capture all content view names
   shell: hammer --csv content-view list --organization-id 1 --per-page 10000
          --nondefault yes | awk -F, '!/^Content/ {print $2}'
   register: content_views
 
-- name: promote | debug output
-  debug:
-    var: content_views
-
 - name: promote | ensure {{ content_view }} is valid
   assert:
     that:
       - "'{{ content_view }}' in content_views.stdout"
+    msg: "\""{{ content_view }}\" is not a valid content view"
+
+- name: promote | capture all lifecycle environment names
+  shell: hammer --csv lifecycle-environment list --organization-id 1
+         --library false | awk -F, '!/^ID/ {print $2}'
+  register: lifecycle_envs
+
+- name: promote | ensure {{ lifecycle_env }} is valid
+  assert:
+    that:
+      - "'{{ lifecycle_env }}' in lifecycle_envs.stdout"
+    msg: "\""{{ lifecycle_env }}\" is not a valid lifecycle environment"
 
 # verify passed content view is valid
 # verify passed lifecycle environment is valid
