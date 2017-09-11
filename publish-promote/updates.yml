@@ -13,7 +13,7 @@
 #      tags: always
 
   roles:
-    - publish # without variables, this will publish everything
+#    - publish # without variables, this will publish everything
     - { role: promote, content_view: "{{ content_views }}", lifecycle_env: "{{ lifecycle_envs }}" }
 #    - { role: promote, content_view: 'CCV Satellite', lifecycle_env: 'Satellite' }
 #    - { role: promote, content_view: 'CCV CloudForms', lifecycle_env: 'CloudForms Sandbox' }
