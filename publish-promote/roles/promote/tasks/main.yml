@@ -8,6 +8,16 @@
     - "{{ content_view }}"
     - "{{ lifecycle_env }}"
 
+- name: promote | capture all content view names
+  shell: hammer --csv content-view list --organization-id 1 --per-page 10000
+         --nondefault yes | awk -F, '!/^Content/ {print $2}'
+  register: content_views
+
+- name: promote | ensure {{ content_view }} is valid
+  assert:
+    that:
+      - "{{ content_view }} in content_views.stdout"
+
 # verify passed content view is valid
 # verify passed lifecycle environment is valid
 # allow for specific version to be passed, but default is latest version
@@ -20,15 +30,3 @@
 #   either all or a single content view if it has not been published in a week
 
 ################################################################################
-# STANDALONE:
-#  Capture the standalone content view names into a 'standalones' register
-- name: capture standalone content view names in 'standalones' register
-  shell: hammer --csv content-view list --organization-id 1 --per-page 10000
-         --nondefault yes --noncomposite yes | awk -F, '!/^Content/ {print $2}'
-  register: standalones
-
-#  Because you cannot loop with blocks, loop through the standalones by looping
-#   through an external standalone task (handling one standalone at a time)
-- name: loop through the standalones by including the standalone task file
-  include: standalone.yml cvNAME={{ item }}
-  with_items: '{{ standalones.stdout_lines }}'
