@@ -7,3 +7,28 @@
   with_nested:
     - "{{ content_view }}"
     - "{{ lifecycle_env }}"
+
+# verify passed content view is valid
+# verify passed lifecycle environment is valid
+# allow for specific version to be passed, but default is latest version
+
+################################################################################
+# VARIABLES:
+#  The task should allow for a particular content view to be passed, determine
+#   if it is standalone or composite, and handle accordingly
+#  The task should allow for a boolean to be passed and if true, only publish
+#   either all or a single content view if it has not been published in a week
+
+################################################################################
+# STANDALONE:
+#  Capture the standalone content view names into a 'standalones' register
+- name: capture standalone content view names in 'standalones' register
+  shell: hammer --csv content-view list --organization-id 1 --per-page 10000
+         --nondefault yes --noncomposite yes | awk -F, '!/^Content/ {print $2}'
+  register: standalones
+
+#  Because you cannot loop with blocks, loop through the standalones by looping
+#   through an external standalone task (handling one standalone at a time)
+- name: loop through the standalones by including the standalone task file
+  include: standalone.yml cvNAME={{ item }}
+  with_items: '{{ standalones.stdout_lines }}'
