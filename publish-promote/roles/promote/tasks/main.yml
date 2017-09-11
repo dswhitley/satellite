@@ -17,7 +17,7 @@
   assert:
     that:
       - "'{{ content_view }}' in content_views.stdout"
-    msg: "\""{{ content_view }}\" is not a valid content view"
+    msg: "\"{{ content_view }}\" is not a valid content view"
 
 - name: promote | capture all lifecycle environment names
   shell: hammer --csv lifecycle-environment list --organization-id 1
@@ -28,7 +28,7 @@
   assert:
     that:
       - "'{{ lifecycle_env }}' in lifecycle_envs.stdout"
-    msg: "\""{{ lifecycle_env }}\" is not a valid lifecycle environment"
+    msg: "\"{{ lifecycle_env }}\" is not a valid lifecycle environment"
 
 # verify passed content view is valid
 # verify passed lifecycle environment is valid
