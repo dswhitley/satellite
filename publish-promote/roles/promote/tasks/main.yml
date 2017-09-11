@@ -8,10 +8,18 @@
     - "{{ content_view }}"
     - "{{ lifecycle_env }}"
 
+- name: promote | debug output
+  debug:
+    var: content_view
+
 - name: promote | capture all content view names
   shell: hammer --csv content-view list --organization-id 1 --per-page 10000
          --nondefault yes | awk -F, '!/^Content/ {print $2}'
   register: content_views
+
+- name: promote | debug output
+  debug:
+    var: content_views
 
 - name: promote | ensure {{ content_view }} is valid
   assert:
