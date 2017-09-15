@@ -1,31 +1,56 @@
-Role Name
-=========
+promote role
+============
 
-A brief description of the role goes here.
+This is a role which will promote a content view to a specific lifecycle
+environment.  This can get tricky, but the initial iteration will only promote
+a single version of a content view to a lifecycle environment.
+
+There is only a little logic currently.  The role is expected to be passed both
+a content view name and a lifecycle environment name.  This may not make sense
+as you would typically promote a specific version to a specific lifecycle.  So
+we take the lifecycle argument, find the prior configured lifecycle and promote
+*THAT* version to the lifecycle environment that is passed.
+
+The *promote* task attempts to run in an asynchronous manner.  Than a `hammer`
+command is used to query the tasks on the Satellite.  It is currently configured
+to wait 5 minutes between attempts for 5 attempts.
 
 Requirements
 ------------
 
-Any pre-requisites that may not be covered by Ansible itself or the role should be mentioned here. For instance, if the role uses the EC2 module, it may be a good idea to mention in this section that the boto package is required.
+This role currently uses a lot of `hammer` commands (along with some command
+  line parsing of the output).  So `hammer` must be configured, which is
+  essentially ensuring that the `foreman.yml` file is populated correctly
+  (possibly in `/etc/hammer/cli.modules.d/`).
 
 Role Variables
 --------------
 
-A description of the settable variables for this role should go here, including any variables that are in defaults/main.yml, vars/main.yml, and any variables that can/should be set via parameters to the role. Any variables that are read from other roles and/or the global scope (ie. hostvars, group vars, etc.) should be mentioned here as well.
+The ***promote*** role relies on the Fully Qualified Domain name be contained in a
+`sat_fqdn` variable.  In my example, that is in a top level `global_vars.yml`
+file which is "included" in the main playbook, for me, titled `updates.yml`
 
-Dependencies
-------------
-
-A list of other roles hosted on Galaxy should go here, plus any details in regards to parameters that may need to be set for other roles, or variables that are used from other roles.
+Additionally, the role needs to be passed these two variables:
+* **content_view**: this is the name of a content view
+* **lifecycle_env**: this is the name of a lifecycle environment to promote the
+(prior) content view version to
 
 Example Playbook
 ----------------
 
-Including an example of how to use your role (for instance, with variables passed in as parameters) is always nice for users too:
+An example of how to use the role:
 
     - hosts: servers
       roles:
-         - { role: username.rolename, x: 42 }
+        - publish # without variables, this will publish everything
+        - { role: promote, content_view: 'CCV RHEL 7', lifecycle_env: 'Dev' }
+
+TO-DO
+-----
+
+Ideally this role should allow for two variables which will modify its behavior:
+* ***CONTENTVIEWVER***:  instead of just promoting the content view version of
+the prior content view version, allow this parameter to specify the version
 
 License
 -------
