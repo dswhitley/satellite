@@ -12,8 +12,12 @@
 #      command: /bin/hammer job-invocation create --job-template "Download OVAL Report" --search-query "name={{ sat_fqdn }}" --async
 #      tags: always
 
+
   roles:
     - publish # without variables, this will publish everything
+# I should capture the content view and lifecycle information here and put it in
+# a file that each role can reference.  this should be done after the publish
+# but before the promotions.  That might mean a simple role to collect data?
 #    - { role: promote, content_view: "{{ content_views }}", lifecycle_env: "{{ lifecycle_envs }}" }
 #    - { role: promote, content_view: 'CCV RHEL 7', lifecycle_env: 'Acceptance' }
 #    - { role: promote, content_view: 'CCV CloudForms', lifecycle_env: 'CloudForms Sandbox' }
