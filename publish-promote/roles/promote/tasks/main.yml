@@ -8,6 +8,40 @@
     - "{{ content_view }}"
     - "{{ lifecycle_env }}"
 
+
+
+- name: promote | capture all content views in json
+  shell: hammer --output json lifecycle-environment list {{ORGID}}
+  register: cvsINFO
+
+- name: promote | capture all version info for {{ content_view }} lifecycles
+  shell: hammer --output json content-view version list {{ORGID}} --content-view "{{ content_view }}"
+  register: cvVERS
+
+- name: set_fact | find lifecycle prior to {{ lifecycle_env }}
+  set_fact:
+    lcID:    "{{ item.ID }}"
+    lcPRIOR: "{{ item.Prior }}"
+  when: item.Name == lifecycle_env
+  with_items: "{{ cvsINFO.stdout }}"
+
+- name: set_fact | find content view version ID related to prior lifecycle [{{lcPRIOR}}]
+  set_fact:
+    cvPRIORID:  "{{ item.ID }}"
+    cvPRIORVER: "{{ item.Version }}"
+  when: lcPRIOR in item["Lifecycle Environments"]
+  with_items: "{{ cvVERS.stdout }}"
+
+- name: promoting {{ content_view }} version {{ cvPRIORVER }} to {{ lifecycle_env }}
+  command: hammer --interactive 0 content-view version promote {{ORGID}} --id {{cvPRIORID}} --to-lifecycle-environment {{lifecycle_env}} --async
+
+# add --description
+# add wait for task promote
+# add section to skip setting version if version is passed
+
+
+
+
 - name: promote | capture all content view names
   shell: hammer --csv content-view list --organization-id 1 --per-page 10000
          --nondefault yes | awk -F, '!/^Content/ {print $2}'
@@ -33,6 +67,63 @@
 # verify passed content view is valid
 # verify passed lifecycle environment is valid
 # allow for specific version to be passed, but default is latest version
+
+# - { role: promote, content_view: 'CCV RHEL 7', lifecycle_env: 'Acceptance' }
+
+# "promote content view cvNAME to lcNAME" means: increment the cvVER (cvID) of cvNAME in lcNAME
+# - identify the current cvID of cvNAME in lcNAME
+# -
+# [root@demo-satellite ~]# hammer content-view version list ${ORGID} --content-view "${CVNAME}"---|----------------|---------|-----------------------
+# ID | NAME           | VERSION | LIFECYCLE ENVIRONMENTS
+# ---|----------------|---------|-----------------------
+# 34 | CCV RHEL 7 3.0 | 3.0     | Library, Development
+# 33 | CCV RHEL 7 2.0 | 2.0     |
+# 32 | CCV RHEL 7 1.0 | 1.0     | Acceptance
+# ---|----------------|---------|-----------------------
+
+# - { role: promote, content_view: 'CCV RHEL 7', lifecycle_env: 'Acceptance' }
+
+### SHOULD RESULT IN:
+
+# [root@demo-satellite ~]# hammer content-view version list ${ORGID} --content-view "${CVNAME}"---|----------------|---------|-----------------------
+# ID | NAME           | VERSION | LIFECYCLE ENVIRONMENTS
+# ---|----------------|---------|-----------------------
+# 34 | CCV RHEL 7 3.0 | 3.0     | Library, Development
+# 33 | CCV RHEL 7 2.0 | 2.0     | Acceptance
+# 32 | CCV RHEL 7 1.0 | 1.0     |
+# ---|----------------|---------|-----------------------
+
+### WHICH MEANS INCREMENT TO THE LATEST MAJOR VERSION OF THE CV
+
+[root@demo-satellite tmp]# hammer lifecycle-environment list ${ORGID}; hammer content-view list ${ORGID}; hammer content-view version list ${ORGID} --content-view "${CVNAME}"
+---|-------------|------------
+ID | NAME        | PRIOR
+---|-------------|------------
+4  | Production  | Acceptance
+1  | Library     |
+2  | Development | Library
+3  | Acceptance  | Development
+---|-------------|------------
+----------------|---------------------------|---------------------------|-----------|---------------
+CONTENT VIEW ID | NAME                      | LABEL                     | COMPOSITE | REPOSITORY IDS
+----------------|---------------------------|---------------------------|-----------|---------------
+2               | RHEL7_Base                | rhel7_base                |           | 1, 2, 3, 4, 5
+3               | EPEL                      | epel                      |           | 6
+4               | Development-RHEL          | composite_D_rhel7_epel    | true      |
+1               | Default Organization View | Default_Organization_View |           |
+5               | CCV RHEL 7                | CCV_RHEL_7                | true      |
+----------------|---------------------------|---------------------------|-----------|---------------
+---|----------------|---------|-----------------------
+ID | NAME           | VERSION | LIFECYCLE ENVIRONMENTS
+---|----------------|---------|-----------------------
+34 | CCV RHEL 7 3.0 | 3.0     | Library, Development
+33 | CCV RHEL 7 2.0 | 2.0     |
+32 | CCV RHEL 7 1.0 | 1.0     | Acceptance
+---|----------------|---------|-----------------------
+
+[root@demo-satellite tmp]# ./cv_promote.sh -c 'CCV RHEL 7' Acceptance
+
+PRIOR=$()
 
 ################################################################################
 # VARIABLES:
