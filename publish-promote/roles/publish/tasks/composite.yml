@@ -36,7 +36,7 @@
            {{ORGID}} --name "{{ cv }}"
 
 - name: composite | publishing {{ cv }} asynchronously
-  command: hammer --interactive 0 content-view publish {{ORGID}} --name {{ cv }}
+  command: hammer --interactive 0 content-view publish {{ORGID}} --name "{{ cv }}"
            --description "Update {{ ansible_date_time.iso8601 }}" --async
   register: publish
   failed_when:
