@@ -18,7 +18,8 @@
 
 - name: testing
   debug:
-    msg: "here is the taskID {{ publish.stdout.split(' ')|last }}"
+    msg: "here is the taskID {{ publish.stdout }}"
+#    msg: "here is the taskID {{ publish.stdout.split(' ')|last }}"
 
 - name: standalone | wait for the {{ cv }} publish task to complete successfully
   shell: hammer --csv task list --search {{ publish.stdout.split(' ')|last }} |
