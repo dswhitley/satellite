@@ -16,13 +16,21 @@
 # For some reason ^this^ gives a timeout error even if it is running, so don't
 # stop on error. And sometimes it gives an error about the task already running
 
+- name: standalone | get the Satellite task ID for {{ cv }} publish task
+  shell: hammer --csv task list --search publish --order 'ENDED AT' |
+         awk -F, '!/^ID/ && $6~/planning|running/ {print $1;}'
+  register: satTASK
+  until: satTASK.stdout != ""
+  retries: 5
+  delay: 30
+
 - name: testing
   debug:
-    msg: "here is the taskID {{ publish.stdout }}"
+    msg: "here is the taskID {{ satTASK.stdout }}"
 #    msg: "here is the taskID {{ publish.stdout.split(' ')|last }}"
 
 - name: standalone | wait for the {{ cv }} publish task to complete successfully
-  shell: hammer --csv task list --search {{ publish.stdout.split(' ')|last }} |
+  shell: hammer --csv task list --search {{ satTASK.stdout }} |
          awk -F, '!/^ID/ && $7 !~ /success/ {print;}'
   register: result
   until: result.stdout == ""
