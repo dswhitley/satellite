@@ -16,6 +16,10 @@
 # For some reason ^this^ gives a timeout error even if it is running, so don't
 # stop on error. And sometimes it gives an error about the task already running
 
+- name: testing
+  debug:
+    msg: "here is the taskID {{ publish.stdout.split(' ')|last }}"
+
 - name: standalone | wait for the {{ cv }} publish task to complete successfully
   shell: hammer --csv task list --search {{ publish.stdout.split(' ')|last }} |
          awk -F, '!/^ID/ && $7 !~ /success/ {print;}'
