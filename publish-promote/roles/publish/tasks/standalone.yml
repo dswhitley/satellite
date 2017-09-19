@@ -18,7 +18,7 @@
 
 - name: standalone | wait for the {{ cv }} publish task to complete successfully
   shell: hammer --csv task list --search {{ publish.stdout.split(' ')|last }} |
-         awk -F, '$7 != /success/ {print;}'
+         awk -F, '!/^ID/ && $7 !~ /success/ {print;}'
   register: result
   until: result.stdout == ""
   retries: 5
