@@ -36,20 +36,24 @@
            {{ORGID}} --name "{{ cv }}"
 
 - name: composite | publishing {{ cv }} asynchronously
-  command: hammer --interactive 0 content-view publish {{ORGID}} --name "{{ cv }}"
+  command: hammer --interactive 0 content-view publish {{ORGID}} --name "{{cv}}"
            --description "Update {{ ansible_date_time.iso8601 }}" --async
-  register: publish
-  failed_when:
-    - "'Timeout' not in publish.stderr"
-    - "'being published' not in publish.stdout"
-    - "'other running tasks' not in publish.stderr"
+  ignore_errors: yes
 
 ## For some reason ^this^ gives a timeout error even if it is running, so don't
 ## stop on error. And sometimes it gives an error about the task already running
 
-- name: composite | wait for the {{ cv }} publish task to complete
+- name: composite | get the Satellite Task Id for the newest publish task
   shell: hammer --csv task list --search publish --order 'ENDED AT' |
-         awk -F, '$6~/planning|running/ {print;}'
+         awk -F, '!/^ID/ && $6~/planning|running/ {print $1; exit;}'
+  register: satTASK
+  until: satTASK.stdout != ""
+  retries: 5
+  delay: 30
+
+- name: composite | wait for the {{ cv }} publish task to complete successfully
+  shell: hammer --csv task list --search {{ satTASK.stdout }} |
+         awk -F, '!/^ID/ && $7 !~ /success/ {print;}'
   register: result
   until: result.stdout == ""
   retries: 5
