@@ -8,26 +8,20 @@
   set_fact: 'cv={{ cvNAME }}'
 
 - name: standalone | publishing {{ cv }} asynchronously
-  command: hammer --interactive 0 content-view publish {{ORGID}} --name "{{ cv }}"
+  command: hammer --interactive 0 content-view publish {{ORGID}} --name "{{cv}}"
            --description "Update {{ ansible_date_time.iso8601 }}" --async
-  register: publish
   ignore_errors: yes
 
 # For some reason ^this^ gives a timeout error even if it is running, so don't
 # stop on error. And sometimes it gives an error about the task already running
 
-- name: standalone | get the Satellite task ID for {{ cv }} publish task
+- name: standalone | get the Satellite Task Id for the newest publish task
   shell: hammer --csv task list --search publish --order 'ENDED AT' |
-         awk -F, '!/^ID/ && $6~/planning|running/ {print $1;}'
+         awk -F, '!/^ID/ && $6~/planning|running/ {print $1; exit;}'
   register: satTASK
   until: satTASK.stdout != ""
   retries: 5
   delay: 30
-
-- name: testing
-  debug:
-    msg: "here is the taskID {{ satTASK.stdout }}"
-#    msg: "here is the taskID {{ publish.stdout.split(' ')|last }}"
 
 - name: standalone | wait for the {{ cv }} publish task to complete successfully
   shell: hammer --csv task list --search {{ satTASK.stdout }} |
