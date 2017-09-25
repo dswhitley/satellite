@@ -28,15 +28,19 @@
   command: hammer --interactive 0 content-view version promote {{ORGID}}
            --id {{cvPRIORID}} --to-lifecycle-environment {{lifecycle_env}}
            --description "Promote {{ ansible_date_time.iso8601 }}" --async
-  register: promote
-  failed_when:
-    - "'Timeout' not in promote.stderr"
-    - "'being promoted' not in promote.stdout"
-    - "'other running tasks' not in promote.stderr"
+  ignore_errors: yes
 
-- name: wait for the promotion task to complete
+- name: promote | get the Satellite Task Id for the newest promote task
   shell: hammer --csv task list --search promote --order 'ENDED AT' |
-         awk -F, '$6~/planning|running/ {print;}'
+         awk -F, '!/^ID/ && $6~/planning|running/ {print $1; exit;}'
+  register: satTASK
+  until: satTASK.stdout != ""
+  retries: 5
+  delay: 30
+
+- name: promote | wait for the {{ cv }} promote task to complete successfully
+  shell: hammer --csv task list --search {{ satTASK.stdout }} |
+         awk -F, '!/^ID/ && $7 !~ /success/ {print;}'
   register: result
   until: result.stdout == ""
   retries: 5
