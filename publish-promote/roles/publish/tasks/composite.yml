@@ -8,7 +8,7 @@
   set_fact: 'cv={{ cvNAME }}'
 
 - name: composite | capture components making up {{ cv }}
-  shell: hammer content-view info {{ORGID}} --name {{ cv }} |
+  shell: hammer content-view info {{ORGID}} --name "{{ cv }}" |
          sed -n '/^Components/,/^Activation/p' |
          awk '/Name/ {print $2;}'
   register: components
