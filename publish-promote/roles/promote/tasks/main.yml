@@ -38,7 +38,7 @@
   retries: 5
   delay: 30
 
-- name: promote | wait for the {{ cv }} promote task to complete successfully
+- name: promote | wait for the {{ content_view }} promote task to complete successfully
   shell: hammer --csv task list --search {{ satTASK.stdout }} |
          awk -F, '!/^ID/ && $7 !~ /success/ {print;}'
   register: result
