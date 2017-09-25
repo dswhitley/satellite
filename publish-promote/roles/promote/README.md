@@ -11,6 +11,15 @@ as you would typically promote a specific version to a specific lifecycle.  So
 we take the lifecycle argument, find the prior configured lifecycle and promote
 *THAT* version to the lifecycle environment that is passed.
 
+**THEREFORE** it may make the most sense to promote the higher environments
+first (Production, Staging, QA, Dev, etc).  Otherwise, if you promote to the
+lowest environment first...it is likely that Dev will be promoted to the same
+content view version as "Library" and then QA will be promoted to it's prior
+environment (Dev) which is now at the same content view version as Library.  
+This will essentially put all Lifecycle Environments at the same Content View
+version as Library and it is unlikely that that is the desired effect.  ***so be
+careful in the order of promotion!***
+
 The *promote* task attempts to run in an asynchronous manner.  Than a `hammer`
 command is used to query the tasks on the Satellite.  It is currently configured
 to wait 5 minutes between attempts for 5 attempts.
