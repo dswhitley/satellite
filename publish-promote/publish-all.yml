@@ -1,0 +1,13 @@
+---
+- name: ansible playbook publishing and promoting content views
+  hosts: all
+  #hosts: localhost
+  #connection: local
+
+  pre_tasks:
+    - name: updates | include global variables
+      include_vars: global_vars.yml
+      tags: always
+
+  roles:
+    - publish # without variables, this will publish everything
