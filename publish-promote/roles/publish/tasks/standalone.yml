@@ -7,11 +7,10 @@
 - name: standalone | set fact from passed variables
   set_fact: 'cv={{ cvNAME }}'
 
-- name: standalone | publishing {{ cv }} asynchronously
-  command: hammer --interactive 0 content-view publish {{ORGID}} --name "{{cv}}"
+- name: standalone | publishing the {{ cv }} content view
+  command: hammer content-view publish {{ORGID}} --name "{{cv}}"
            --description "Update {{ ansible_date_time.iso8601 }}"
-  ignore_errors: yes
-
+  
 # For some reason ^this^ gives a timeout error even if it is running, so don't
 # stop on error. And sometimes it gives an error about the task already running
 
