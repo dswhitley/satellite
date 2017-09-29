@@ -1,8 +1,6 @@
 ---
-- name: ansible playbook publishing and promoting content views
+- name: ansible playbook promoting Development to preivous lifecycle version
   hosts: all
-  #hosts: localhost
-  #connection: local
 
   pre_tasks:
     - name: updates | include global variables
