@@ -11,9 +11,9 @@ an asynchronous manner.  They then use another `hammer` command to query the
 tasks on the Satellite.  They are currently configured to wait 5 minutes between
 attempts for 5 attempts.  
 
-**NOTE** the `publish` command used could use some work because the results have
- been inconsistent.  I've attempted to allow the playbook continue in a few
- different scenarios I've seen.
+**NOTE** the `publish` is not run asynchronously.  That means that each promotion
+will wait for the previous to finish.  This can add some time, but is overall
+a better approach.
 
 Requirements
 ------------
