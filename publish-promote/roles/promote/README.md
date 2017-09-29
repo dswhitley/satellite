@@ -20,9 +20,9 @@ This will essentially put all Lifecycle Environments at the same Content View
 version as Library and it is unlikely that that is the desired effect.  ***so be
 careful in the order of promotion!***
 
-The *promote* task attempts to run in an asynchronous manner.  Than a `hammer`
-command is used to query the tasks on the Satellite.  It is currently configured
-to wait 5 minutes between attempts for 5 attempts.
+The *promote* task is not run asynchronously.  That means that each promotion
+will wait for the previous to finish.  This can add some time, but is overall
+a better approach.
 
 Requirements
 ------------
