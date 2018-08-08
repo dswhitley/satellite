@@ -3,8 +3,8 @@
 
 ################################################################################
 # Populte with the FQDN of the Satellite server
-sat_fqdn: "demo-satellite.dwhitley.demo.com"
-
+#sat_fqdn: "demo-satellite.dwhitley.demo.com"
+sat_fqdn: "192.168.126.2"
 
 ORG: "Unix"
 ORGID: " --organization-id 1"
